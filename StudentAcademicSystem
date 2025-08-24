@@ -1,0 +1,206 @@
+ #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+struct Student {
+    int id;
+    char name[50];
+    char department[50];
+    float gpa;
+    struct Student* prev;
+    struct Student* next;
+};
+
+struct Student* head = NULL;
+
+// Function to create a new student node
+struct Student* createStudent(int id, char name[], char dept[], float gpa) {
+    struct Student* newStudent = (struct Student*)malloc(sizeof(struct Student));
+    newStudent->id = id;
+    strcpy(newStudent->name, name);
+    strcpy(newStudent->department, dept);
+    newStudent->gpa = gpa;
+    newStudent->prev = NULL;
+    newStudent->next = NULL;
+    return newStudent;
+}
+
+// Insert new student
+void insertStudent(int id, char name[], char dept[], float gpa) {
+    struct Student* newStudent = createStudent(id, name, dept, gpa);
+    if (head == NULL) {
+        head = newStudent;
+    } else {
+        struct Student* temp = head;
+        while (temp->next != NULL)
+            temp = temp->next;
+        temp->next = newStudent;
+        newStudent->prev = temp;
+    }
+    printf("Student record inserted.\n");
+}
+
+// Delete student by ID
+void deleteStudent(int id) {
+    struct Student* temp = head;
+    while (temp != NULL && temp->id != id) {
+        temp = temp->next;
+    }
+    if (temp == NULL) {
+        printf("Student ID not found.\n");
+        return;
+    }
+    if (temp->prev != NULL) temp->prev->next = temp->next;
+    if (temp->next != NULL) temp->next->prev = temp->prev;
+    if (temp == head) head = temp->next;
+    free(temp);
+    printf("Student record deleted.\n");
+}
+
+// Search by ID or Name
+void searchStudent(char key[]) {
+    struct Student* temp = head;
+    int found = 0;
+    while (temp != NULL) {
+        char idStr[20];
+        sprintf(idStr, "%d", temp->id);
+        if (strcmp(idStr, key) == 0 || strcmp(temp->name, key) == 0) {
+            printf("Found: ID=%d, Name=%s, Dept=%s, GPA=%.2f\n",
+                   temp->id, temp->name, temp->department, temp->gpa);
+            found = 1;
+        }
+        temp = temp->next;
+    }
+    if (!found) printf("No student found.\n");
+}
+
+// Display all records
+void displayStudents() {
+    struct Student* temp = head;
+    if (temp == NULL) {
+        printf("No records found.\n");
+        return;
+    }
+    printf("\nStudent Records:\n");
+    while (temp != NULL) {
+        printf("ID=%d, Name=%s, Dept=%s, GPA=%.2f\n",
+               temp->id, temp->name, temp->department, temp->gpa);
+        temp = temp->next;
+    }
+}
+
+// Reverse display
+void displayReverse() {
+    if (head == NULL) {
+        printf("No records found.\n");
+        return;
+    }
+    struct Student* temp = head;
+    while (temp->next != NULL) temp = temp->next; // go to last
+    printf("\nReverse Order Records:\n");
+    while (temp != NULL) {
+        printf("ID=%d, Name=%s, Dept=%s, GPA=%.2f\n",
+               temp->id, temp->name, temp->department, temp->gpa);
+        temp = temp->prev;
+    }
+}
+
+// Clone list
+struct Student* cloneList() {
+    if (head == NULL) return NULL;
+    struct Student* newHead = NULL, *tail = NULL, *temp = head;
+    while (temp != NULL) {
+        struct Student* newStudent = createStudent(temp->id, temp->name, temp->department, temp->gpa);
+        if (newHead == NULL) {
+            newHead = newStudent;
+            tail = newHead;
+        } else {
+            tail->next = newStudent;
+            newStudent->prev = tail;
+            tail = newStudent;
+        }
+        temp = temp->next;
+    }
+    printf("List cloned successfully.\n");
+    return newHead;
+}
+
+// Calculate average GPA
+void averageGPA() {
+    struct Student* temp = head;
+    if (temp == NULL) {
+        printf("No records to calculate GPA.\n");
+        return;
+    }
+    float sum = 0;
+    int count = 0;
+    while (temp != NULL) {
+        sum += temp->gpa;
+        count++;
+        temp = temp->next;
+    }
+    printf("Average GPA: %.2f\n", sum / count);
+}
+
+// Menu-driven program
+int main() {
+    int choice, id;
+    char name[50], dept[50], key[50];
+    float gpa;
+    struct Student* backup = NULL;
+
+    while (1) {
+        printf("\n===== Student Record Management System =====\n");
+        printf("1. Insert Student\n2. Delete Student\n3. Search Student\n4. Display All\n");
+        printf("5. Display Reverse\n6. Clone List\n7. Average GPA\n8. Exit\n");
+        printf("Enter choice: ");
+        scanf("%d", &choice);
+        getchar();
+
+        switch (choice) {
+        case 1:
+            printf("Enter ID: ");
+            scanf("%d", &id);
+            getchar();
+            printf("Enter Name: ");
+            fgets(name, sizeof(name), stdin);
+            name[strcspn(name, "\n")] = 0;
+            printf("Enter Department: ");
+            fgets(dept, sizeof(dept), stdin);
+            dept[strcspn(dept, "\n")] = 0;
+            printf("Enter GPA: ");
+            scanf("%f", &gpa);
+            insertStudent(id, name, dept, gpa);
+            break;
+        case 2:
+            printf("Enter ID to delete: ");
+            scanf("%d", &id);
+            deleteStudent(id);
+            break;
+        case 3:
+            printf("Enter ID or Name to search: ");
+            fgets(key, sizeof(key), stdin);
+            key[strcspn(key, "\n")] = 0;
+            searchStudent(key);
+            break;
+        case 4:
+            displayStudents();
+            break;
+        case 5:
+            displayReverse();
+            break;
+        case 6:
+            backup = cloneList();
+            break;
+        case 7:
+            averageGPA();
+            break;
+        case 8:
+            printf("Exiting...\n");
+            exit(0);
+        default:
+            printf("Invalid choice.\n");
+        }
+    }
+    return 0;
+}
